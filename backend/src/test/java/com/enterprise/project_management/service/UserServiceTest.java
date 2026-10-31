@@ -58,12 +58,12 @@ class UserServiceTest {
   void emailDeliveryFailureIsReportedAndRegistrationDoesNotReturnSuccess() {
     when(userRepository.save(any(User.class))).thenAnswer(call -> call.getArgument(0));
     when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
-    doThrow(new IllegalStateException("Email verification is not configured.")).when(verificationMailer)
+    doThrow(new IllegalStateException("Transactional email is not configured: BREVO_API_KEY is missing.")).when(verificationMailer)
         .sendCode(any(User.class), anyString());
 
     IllegalStateException error = assertThrows(IllegalStateException.class,
         () -> userService.register(request()));
-    assertTrue(error.getMessage().contains("Email verification is not configured"));
+    assertTrue(error.getMessage().contains("BREVO_API_KEY"));
   }
 
   @Test

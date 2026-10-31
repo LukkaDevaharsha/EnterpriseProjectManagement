@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.mail.MailException;
 import java.util.Locale;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -58,9 +57,9 @@ public class AuthController {
     } catch (DataIntegrityViolationException e) {
       return ResponseEntity.status(HttpStatus.CONFLICT)
           .body(Map.of("message", "Email or Employee ID is already registered."));
-    } catch (IllegalStateException | MailException e) {
+    } catch (IllegalStateException e) {
       return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-          .body(Map.of("message", "Account registration could not complete because the verification email could not be sent. Check backend Gmail SMTP configuration and try again."));
+          .body(Map.of("message", "Account registration could not complete because the verification email could not be sent. Check the Brevo email configuration and try again."));
     }
   }
 
@@ -88,9 +87,9 @@ public class AuthController {
       return ResponseEntity.ok(Map.of("message", "If the account needs verification, a new code has been sent."));
     } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
-    } catch (IllegalStateException | MailException e) {
+    } catch (IllegalStateException e) {
       return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-          .body(Map.of("message", "Could not send the verification email. Check backend Gmail SMTP configuration and try again."));
+          .body(Map.of("message", "Could not send the verification email. Check the Brevo email configuration and try again."));
     }
   }
 
