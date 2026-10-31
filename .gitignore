@@ -35,7 +35,7 @@ uploads/
 # =========================
 # Database dumps / backups
 # =========================
-*.sql
+/*.sql
 *.sql.gz
 *.dump
 *.bak
@@ -58,4 +58,5 @@ Thumbs.db
 # Temporary files
 # =========================
 *.tmp
-*.temp
+*.tempbackend/startup-error.txt
+backend/startup-error.txt
