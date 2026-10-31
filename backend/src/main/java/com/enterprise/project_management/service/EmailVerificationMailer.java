@@ -10,14 +10,22 @@ import org.springframework.stereotype.Service;
 public class EmailVerificationMailer {
   private final JavaMailSender mailSender;
   private final String from;
+  private final String username;
+  private final String password;
 
-  public EmailVerificationMailer(JavaMailSender mailSender, @Value("${app.mail.from:}") String from) {
+  public EmailVerificationMailer(
+      JavaMailSender mailSender,
+      @Value("${app.mail.from:}") String from,
+      @Value("${spring.mail.username:}") String username,
+      @Value("${spring.mail.password:}") String password) {
     this.mailSender = mailSender;
     this.from = from;
+    this.username = username;
+    this.password = password;
   }
 
   public void sendCode(User user, String code) {
-    if (from.isBlank()) {
+    if (from.isBlank() || username.isBlank() || password.isBlank()) {
       throw new IllegalStateException("Email verification is not configured. Set GMAIL_USERNAME and GMAIL_APP_PASSWORD on the backend.");
     }
     SimpleMailMessage message = new SimpleMailMessage();

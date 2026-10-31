@@ -319,19 +319,23 @@ function AdminUsers() {
 
                 <td>
                   <div className="table-actions">
-                    <button
-                      className="secondary-button"
-                      onClick={() => toggleStatus(user)}
-                    >
-                      {user.active ? "Deactivate" : "Activate"}
-                    </button>
+                    {String(user.id) === String(currentUser?.id) && user.role === "ADMIN" ? (
+                      <span className="field-hint" title="Administrators cannot disable or delete their own account.">Your Admin account is protected</span>
+                    ) : <>
+                      <button
+                        className="secondary-button"
+                        onClick={() => toggleStatus(user)}
+                      >
+                        {user.active ? "Deactivate" : "Activate"}
+                      </button>
 
-                    <button
-                      className="danger-button"
-                      onClick={() => setUserToDelete(user)}
-                    >
-                      Delete
-                    </button>
+                      <button
+                        className="danger-button"
+                        onClick={() => setUserToDelete(user)}
+                      >
+                        Delete
+                      </button>
+                    </>}
                   </div>
                 </td>
               </tr>

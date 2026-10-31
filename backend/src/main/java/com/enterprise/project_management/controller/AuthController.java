@@ -20,6 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.mail.MailException;
 import java.util.Locale;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -52,10 +55,20 @@ public class AuthController {
 
     } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+    } catch (DataIntegrityViolationException e) {
+      return ResponseEntity.status(HttpStatus.CONFLICT)
+          .body(Map.of("message", "Email or Employee ID is already registered."));
     } catch (IllegalStateException | MailException e) {
       return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-          .body(Map.of("message", e.getMessage() == null ? "Could not send verification email" : e.getMessage()));
+          .body(Map.of("message", "Account registration could not complete because the verification email could not be sent. Check backend Gmail SMTP configuration and try again."));
     }
+  }
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<?> handleInvalidRequest(MethodArgumentNotValidException e) {
+    String message = e.getBindingResult().getFieldErrors().stream()
+        .findFirst().map(error -> error.getDefaultMessage()).orElse("Registration details are invalid.");
+    return ResponseEntity.badRequest().body(Map.of("message", message));
   }
 
   @PostMapping("/verify-email")
@@ -77,7 +90,7 @@ public class AuthController {
       return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
     } catch (IllegalStateException | MailException e) {
       return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-          .body(Map.of("message", e.getMessage() == null ? "Could not send verification email" : e.getMessage()));
+          .body(Map.of("message", "Could not send the verification email. Check backend Gmail SMTP configuration and try again."));
     }
   }
 

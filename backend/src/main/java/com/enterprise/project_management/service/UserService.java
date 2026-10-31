@@ -38,17 +38,18 @@ public class UserService {
       throw new IllegalArgumentException("Email already registered");
     }
 
-    if (userRepository.existsByEmployeeId(request.getEmployeeId())) {
+    String employeeId = request.getEmployeeId().trim();
+    if (userRepository.existsByEmployeeId(employeeId)) {
       throw new IllegalArgumentException("Employee ID already registered");
     }
 
     User user = new User();
 
-    user.setName(request.getName());
+    user.setName(request.getName().trim());
     user.setEmail(email);
     user.setPassword(passwordEncoder.encode(request.getPassword()));
-    user.setEmployeeId(request.getEmployeeId());
-    user.setDepartment(request.getDepartment());
+    user.setEmployeeId(employeeId);
+    user.setDepartment(request.getDepartment().trim());
 
     // Registration can only create employees.
     user.setRole(Role.EMPLOYEE);

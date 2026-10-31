@@ -4,6 +4,7 @@ import com.enterprise.project_management.security.CustomUserDetailsService;
 import com.enterprise.project_management.security.JwtAuthenticationFilter;
 
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +33,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    @Value("${app.frontend-origin:https://enterprise-project-management-pi.vercel.app}")
+    private String frontendOrigin;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -69,13 +73,10 @@ public class SecurityConfig {
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
-       configuration.setAllowedOrigins(
-    List.of(
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "https://enterprise-project-management-pi.vercel.app"
-    )
-);
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:5174",
+                frontendOrigin.replaceAll("/+$", "")));
 
         configuration.setAllowedMethods(
                 List.of(

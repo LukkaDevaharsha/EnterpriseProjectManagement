@@ -3,6 +3,7 @@ package com.enterprise.project_management.service.admin;
 import com.enterprise.project_management.dto.admin.AdminCreateUserRequest;
 import com.enterprise.project_management.dto.admin.AdminUserResponse;
 import com.enterprise.project_management.entity.User;
+import com.enterprise.project_management.entity.Role;
 import com.enterprise.project_management.repository.ActivityRepository;
 import com.enterprise.project_management.repository.IssueCommentRepository;
 import com.enterprise.project_management.repository.IssueRepository;
@@ -12,6 +13,7 @@ import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
 
 @Service
 public class AdminService {
@@ -72,8 +74,9 @@ public class AdminService {
     return AdminUserResponse.from(savedUser);
   }
 
+  @Transactional
   public AdminUserResponse updateRole(
-      Long userId, com.enterprise.project_management.dto.admin.UpdateRoleRequest request) {
+      Long userId, com.enterprise.project_management.dto.admin.UpdateRoleRequest request, String actorEmail) {
 
     User user = getUser(userId);
 
@@ -81,15 +84,30 @@ public class AdminService {
       throw new IllegalArgumentException("Role is required");
     }
 
+    if (isActor(user, actorEmail)) {
+      throw new AccessDeniedException("You cannot change your own administrator role or privileges.");
+    }
+    if (user.getRole() == Role.ADMIN && request.getRole() != Role.ADMIN) {
+      ensureAnotherActiveAdmin();
+    }
+
     user.setRole(request.getRole());
 
     return AdminUserResponse.from(userRepository.save(user));
   }
 
+  @Transactional
   public AdminUserResponse updateStatus(
-      Long userId, com.enterprise.project_management.dto.admin.UpdateUserStatusRequest request) {
+      Long userId, com.enterprise.project_management.dto.admin.UpdateUserStatusRequest request, String actorEmail) {
 
     User user = getUser(userId);
+
+    if (!request.isActive() && isActor(user, actorEmail)) {
+      throw new AccessDeniedException("You cannot deactivate your own account.");
+    }
+    if (!request.isActive() && user.getRole() == Role.ADMIN) {
+      ensureAnotherActiveAdmin();
+    }
 
     user.setActive(request.isActive());
 
@@ -97,9 +115,16 @@ public class AdminService {
   }
 
   @Transactional
-  public void deleteUser(Long userId) {
+  public void deleteUser(Long userId, String actorEmail) {
 
     User user = getUser(userId);
+
+    if (isActor(user, actorEmail)) {
+      throw new AccessDeniedException("You cannot delete your own account.");
+    }
+    if (user.getRole() == Role.ADMIN && user.isActive()) {
+      ensureAnotherActiveAdmin();
+    }
 
     long projectMemberships = projectMemberRepository.countByUserId(userId);
 
@@ -141,5 +166,15 @@ public class AdminService {
     return userRepository
         .findById(userId)
         .orElseThrow(() -> new IllegalArgumentException("User not found"));
+  }
+
+  private boolean isActor(User target, String actorEmail) {
+    return target.getEmail().equalsIgnoreCase(actorEmail);
+  }
+
+  private void ensureAnotherActiveAdmin() {
+    if (userRepository.lockActiveUsersByRole(Role.ADMIN).size() <= 1) {
+      throw new IllegalStateException("The last active administrator cannot be deactivated, deleted, or demoted.");
+    }
   }
 }

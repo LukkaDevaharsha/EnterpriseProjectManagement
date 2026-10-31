@@ -53,43 +53,8 @@ public class AdminInitializer implements CommandLineRunner {
 
             userRepository.save(admin);
 
-            System.out.println(
-                    "Default admin created: " + adminEmail
-            );
+            System.out.println("Default admin account created.");
 
-        } else {
-
-            boolean changed = false;
-
-            if (!admin.isEmailVerified()) {
-                admin.setEmailVerified(true);
-                changed = true;
-            }
-
-            if (admin.getRole() != Role.ADMIN) {
-                admin.setRole(Role.ADMIN);
-                changed = true;
-            }
-
-            if (admin.getDepartment() == null ||
-                    admin.getDepartment().isBlank()) {
-                admin.setDepartment("Administration");
-                changed = true;
-            }
-
-            if (admin.getEmployeeId() == null ||
-                    admin.getEmployeeId().isBlank()) {
-                admin.setEmployeeId("ADMIN-001");
-                changed = true;
-            }
-
-            if (changed) {
-                userRepository.save(admin);
-
-                System.out.println(
-                        "Default admin updated: " + adminEmail
-                );
-            }
         }
     }
 }
