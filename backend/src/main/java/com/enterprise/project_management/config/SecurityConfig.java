@@ -4,6 +4,7 @@ import com.enterprise.project_management.security.CustomUserDetailsService;
 import com.enterprise.project_management.security.JwtAuthenticationFilter;
 
 import java.util.List;
+import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.context.annotation.Bean;
@@ -73,10 +74,18 @@ public class SecurityConfig {
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of(
+        List<String> allowedOrigins = new ArrayList<>(List.of(
                 "http://localhost:5173",
                 "http://localhost:5174",
-                frontendOrigin.replaceAll("/+$", "")));
+                "https://enterprise-project-management-pi.vercel.app"));
+        String configuredOrigin = frontendOrigin.trim().replaceAll("/+$", "");
+        if (!configuredOrigin.isEmpty() && !allowedOrigins.contains(configuredOrigin)) {
+            allowedOrigins.add(configuredOrigin);
+        }
+        configuration.setAllowedOrigins(allowedOrigins);
+
+        configuration.setAllowedOriginPatterns(List.of(
+                "https://enterprise-project-management-*.vercel.app"));
 
         configuration.setAllowedMethods(
                 List.of(
