@@ -44,5 +44,7 @@ tree /F src\main\java\com\enterprise\project_management
 
 
 
-Docker:
-docker build -t enterprise-project-backend .
+Docker:to start
+docker compose up -d
+
+to close:docker compose down
